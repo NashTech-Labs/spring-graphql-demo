@@ -1,0 +1,34 @@
+# InventoryItem type definition to represent an item in the inventory
+type InventoryItem {
+  id: String
+  name: String
+  category: String
+  supplier: String
+  costPrice: Float
+  sellingPrice: Float
+  quantity: Int
+}
+
+# Query operation to get inventory items by ID or all items
+type Query {
+  getInventoryItems: [InventoryItem]
+  getInventoryItemById(id: String): InventoryItem
+}
+
+# Mutation operation to add a new inventory item
+type Mutation {
+  addInventoryItem(
+    id: String!,
+    name: String!,
+    category: String!,
+    supplier: String!,
+    costPrice: Float!,
+    sellingPrice: Float!,
+    quantity: Int!
+  ): InventoryItem
+}
+
+# Subscription operation to listen for changes to inventory items
+type Subscription{
+  inventoryItem: InventoryItem
+}
