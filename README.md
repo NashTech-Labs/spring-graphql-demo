@@ -8,8 +8,6 @@ This project is a demo application built with **Spring Boot**, **GraphQL**, and 
   - Queries to fetch inventory items.
   - Mutations to add new inventory items.
   - Subscriptions for real-time updates on inventory items.
-- **REST API** (optional):
-  - Endpoints for CRUD operations on inventory items.
 - **Reactive Programming**:
   - Utilizes Reactor for handling subscriptions and real-time updates.
 
@@ -38,15 +36,24 @@ This project is a demo application built with **Spring Boot**, **GraphQL**, and 
    git clone https://github.com/ibrahimnadra/GraphQLDemo.git
    cd GraphQLDemo
    ```
-3. **Build the Project**:
+3. **Update Configuration**:
+    - Ensure you have a MySQL database running.
+    - Create a schema for the application.
+    - Update the database connection properties in `application.properties`:
+    - ```properties
+      spring.datasource.url=jdbc:mysql://localhost:3306/your_database_name
+      spring.datasource.username=your_username
+      spring.datasource.password=your_password
+      ```
+4. **Build the Project**:
    ```bash
    ./mvnw clean install
    ```
-4. **Run the Application**:
+5. **Run the Application**:
    ```bash
    ./mvnw spring-boot:run
    ```
-5. **Access GraphQL Playground**:
+6. **Access GraphQL Playground**:
     - Navigate to `http://localhost:8080/graphql`.
 
 ## GraphQL Schema
