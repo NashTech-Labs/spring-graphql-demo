@@ -3,10 +3,7 @@ package com.nashtech.spring_graphql_demo.util;
 import com.nashtech.spring_graphql_demo.entities.InventoryItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
 import reactor.test.StepVerifier;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * InventoryPublisherTest is a test class for InventoryPublisher.
@@ -27,38 +24,23 @@ class InventoryPublisherTest {
 
         inventoryPublisher.addInventory(item);
 
-        Flux<InventoryItem> inventoryFlux = inventoryPublisher.getInventoryItems();
-
-        StepVerifier.create(inventoryFlux)
+        StepVerifier.create(inventoryPublisher.getInventoryItems())
                 .expectNext(item)
                 .thenCancel() // Cancel the subscription to stop the test so that it doesn't block indefinitely
                 .verify();
     }
 
     @Test
-    void testNotifySubscriber() {
-        InventoryItem item = new InventoryItem("1", "Item1", "Category1", "Supplier1", 10.0, 100.0, 50);
+    void testMultipleInventoryItems() {
+        InventoryItem item1 = new InventoryItem("1", "Item1", "Category1", "Supplier1", 10.0, 100.0, 50);
+        InventoryItem item2 = new InventoryItem("2", "Item2", "Category2", "Supplier2", 20.0, 200.0, 30);
 
-        Sinks.Many<InventoryItem> sink = Sinks.many().unicast().onBackpressureBuffer();
-        inventoryPublisher.addSubscriber(sink);
-        inventoryPublisher.addInventory(item);
+        inventoryPublisher.addInventory(item1);
+        inventoryPublisher.addInventory(item2);
 
-        StepVerifier.create(sink.asFlux())
-                .expectNext(item)
-                .thenCancel() // Cancel the subscription to stop the test so that it doesn't block indefinitely
+        StepVerifier.create(inventoryPublisher.getInventoryItems())
+                .expectNext(item1, item2)
+                .thenCancel()
                 .verify();
-    }
-
-    @Test
-    void testAddAndRemoveSubscriber() {
-        InventoryItem item = new InventoryItem("1", "Item1", "Category1", "Supplier1", 10.0, 100.0, 50);
-
-        Sinks.Many<InventoryItem> subscriber = Sinks.many().unicast().onBackpressureBuffer();
-        inventoryPublisher.addSubscriber(subscriber);
-
-        inventoryPublisher.addInventory(item);
-        inventoryPublisher.removeSubscriber(subscriber);
-
-        assertTrue(inventoryPublisher.getSubscribers().isEmpty());
     }
 }

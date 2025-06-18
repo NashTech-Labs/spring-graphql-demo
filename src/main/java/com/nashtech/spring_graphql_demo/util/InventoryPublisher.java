@@ -1,53 +1,41 @@
 package com.nashtech.spring_graphql_demo.util;
 
 import com.nashtech.spring_graphql_demo.entities.InventoryItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.*;
-
-import java.util.concurrent.CopyOnWriteArrayList;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Sinks;
 
 /**
  * InventoryPublisher is a utility class that manages the publishing of inventory items.
- * It uses Reactor's Sinks to emit inventory items and notify subscribers.
+ * It uses Reactor's Sinks to emit inventory items to multiple subscribers.
  */
 @Component
 public class InventoryPublisher {
-    private final Sinks.Many<InventoryItem> processor;
-    private final CopyOnWriteArrayList<Sinks.Many<InventoryItem>> subscribers = new CopyOnWriteArrayList<>();
+    private static final Logger logger = LoggerFactory.getLogger(InventoryPublisher.class);
+    private final Sinks.Many<InventoryItem> sink;
 
-    // Constructor initializes the Sinks.Many processor for unicast emission
+    // Constructor initializes the Sinks.Many processor for multicast emission
     public InventoryPublisher() {
-        this.processor = Sinks.many().unicast().onBackpressureBuffer();
+        this.sink = Sinks.many().multicast().onBackpressureBuffer();
+        logger.info("InventoryPublisher initialized with a multicast sink.");
     }
 
-    // Adds an inventory item to the processor and notifies all subscribers.
+    // Adds an inventory item to the sink.
     public void addInventory(InventoryItem item) {
-        processor.tryEmitNext(item);
-        notifySubscriber(item);
-    }
-
-    // Notifies all subscribers about the new inventory item.
-    public void notifySubscriber(InventoryItem item) {
-        subscribers.forEach(subscriber->subscriber.tryEmitNext(item));
+        logger.info("Adding inventory item: {}", item);
+        Sinks.EmitResult result = sink.tryEmitNext(item);
+        if (result.isSuccess()) {
+            logger.info("Successfully emitted inventory item: {}", item);
+        } else {
+            logger.error("Failed to emit inventory item: {}. EmitResult: {}", item, result);
+        }
     }
 
     // Returns a Flux that allows subscribers to receive inventory items.
     public Flux<InventoryItem> getInventoryItems() {
-        return processor.asFlux();
+        logger.info("Returning Flux for inventory items.");
+        return sink.asFlux();
     }
-
-    // Adds a new subscriber to the list of subscribers.
-    public void addSubscriber(Sinks.Many<InventoryItem> subscriber) {
-        subscribers.add(subscriber);
-    }
-
-    // Removes a subscriber from the list of subscribers.
-    public void removeSubscriber(Sinks.Many<InventoryItem> subscriber) {
-        subscribers.remove(subscriber);
-    }
-
-    public CopyOnWriteArrayList<Sinks.Many<InventoryItem>> getSubscribers() {
-        return subscribers;
-    }
-
 }
